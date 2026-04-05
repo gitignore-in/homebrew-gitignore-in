@@ -49,7 +49,8 @@ jobs:
     needs: resolve
     strategy:
       matrix:
-        macos: [macos-15-intel, macos-15]
+        # Keep the rehearsal matrix aligned with the support policy in ci.yml.
+        macos: [macos-14, macos-15-intel, macos-26]
     steps:
       - uses: actions/checkout@v6
 
