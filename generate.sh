@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
-version="$(curl https://api.github.com/repos/gitignore-in/gitignore-in/releases/latest | jq -r .tag_name)"
+set -euo pipefail
+
+version="${1:-${GITIGNORE_IN_VERSION:-}}"
+if [ -z "${version}" ]; then
+  version="$(curl -fsSL https://api.github.com/repos/gitignore-in/gitignore-in/releases/latest | jq -r .tag_name)"
+fi
 homepage='https://github.com/gitignore-in/gitignore-in'
 
 gethash() {
