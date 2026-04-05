@@ -6,7 +6,17 @@ jobs:
   test_installation:
     strategy:
       matrix:
-        macos: [macos-15-intel, macos-15]
+        # Apple currently ships security updates for macOS Sonoma 14, Sequoia 15,
+        # and Tahoe 26:
+        # https://support.apple.com/en-us/100100
+        #
+        # GitHub-hosted standard runners are available for macos-14 / macos-15 /
+        # macos-26 on Apple silicon and macos-15-intel / macos-26-intel on Intel:
+        # https://docs.github.com/en/actions/reference/runners/github-hosted-runners
+        #
+        # Validate the oldest supported Apple-silicon target, the currently
+        # available Intel target, and the latest Apple-silicon target.
+        macos: [macos-14, macos-15-intel, macos-26]
     runs-on: ${{ matrix.macos }}
     steps:
       - name: Checkout
