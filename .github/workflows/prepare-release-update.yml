@@ -61,6 +61,10 @@ jobs:
       - name: Validate formula installation
         run: |
           tap_dir="$(brew --repository)"/Library/Taps/gitignore-in/homebrew-gitignore-in
+          mkdir -p "$(dirname "${tap_dir}")"
+          if [ ! -e "${tap_dir}" ]; then
+            ln -s "${PWD}" "${tap_dir}"
+          fi
           cp ./gitignore-in.rb "${tap_dir}/gitignore-in.rb"
           brew reinstall gitignore-in || brew install gitignore-in
           gitignore.in --help >/dev/null
