@@ -1,0 +1,49 @@
+name: prepare formula update
+
+on:
+  repository_dispatch:
+    types: [gitignore-in-release-published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Released gitignore.in version tag (for example, v0.2.0)
+        required: false
+        type: string
+  schedule:
+    - cron: "0 0 * * *"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  prepare-update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Resolve released version
+        id: version
+        env:
+          DISPATCH_VERSION: ${{ github.event.client_payload.version }}
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          version="${DISPATCH_VERSION:-$INPUT_VERSION}"
+          echo "version=${version}" >> "${GITHUB_OUTPUT}"
+
+      - name: Regenerate formula
+        env:
+          GITIGNORE_IN_VERSION: ${{ steps.version.outputs.version }}
+        run: ./generate.sh
+
+      - name: Create update pull request
+        uses: peter-evans/create-pull-request@v8
+        with:
+          branch: chore/update-gitignore-in-formula
+          delete-branch: true
+          commit-message: Update gitignore.in formula
+          title: Update gitignore.in formula
+          body: |
+            Prepare the Homebrew formula for the latest gitignore.in release.
+
+            - regenerated `gitignore-in.rb`

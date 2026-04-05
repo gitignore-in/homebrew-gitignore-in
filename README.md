@@ -15,6 +15,12 @@ $ brew install gitignore-in
 $ ./generate.sh
 ```
 
+You can also pin the upstream release explicitly:
+
+```console
+$ ./generate.sh v0.2.0
+```
+
 ## License
 
 [BSD 2-clause "Simplified" License](https://spdx.org/licenses/BSD-2-Clause)
