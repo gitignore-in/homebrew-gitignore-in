@@ -9,6 +9,14 @@ on:
         description: Released gitignore.in version tag (for example, v0.2.0)
         required: false
         type: string
+      mode:
+        description: Whether to open a PR or only rehearse the update
+        required: false
+        default: prepare-pr
+        type: choice
+        options:
+          - prepare-pr
+          - dry-run
   schedule:
     - cron: "0 0 * * *"
 
@@ -17,23 +25,59 @@ permissions:
   pull-requests: write
 
 jobs:
-  prepare-update:
+  resolve:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.resolve.outputs.version }}
+      mode: ${{ steps.resolve.outputs.mode }}
     steps:
-      - uses: actions/checkout@v6
-
-      - name: Resolve released version
-        id: version
+      - name: Resolve inputs
+        id: resolve
         env:
           DISPATCH_VERSION: ${{ github.event.client_payload.version }}
           INPUT_VERSION: ${{ inputs.version }}
+          DISPATCH_MODE: ${{ github.event.client_payload.mode }}
+          INPUT_MODE: ${{ inputs.mode }}
         run: |
           version="${DISPATCH_VERSION:-$INPUT_VERSION}"
+          mode="${DISPATCH_MODE:-${INPUT_MODE:-prepare-pr}}"
           echo "version=${version}" >> "${GITHUB_OUTPUT}"
+          echo "mode=${mode}" >> "${GITHUB_OUTPUT}"
+
+  validate:
+    runs-on: ${{ matrix.macos }}
+    needs: resolve
+    strategy:
+      matrix:
+        macos: [macos-15-intel, macos-15]
+    steps:
+      - uses: actions/checkout@v6
 
       - name: Regenerate formula
         env:
-          GITIGNORE_IN_VERSION: ${{ steps.version.outputs.version }}
+          GITIGNORE_IN_VERSION: ${{ needs.resolve.outputs.version }}
+        run: ./generate.sh
+
+      - name: Validate formula installation
+        run: |
+          brew install --formula ./gitignore-in.rb
+          gitignore.in --help >/dev/null
+
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: '1'
+          HOMEBREW_NO_INSTALL_CLEANUP: '1'
+          HOMEBREW_NO_ENV_HINTS: '1'
+
+  prepare-update:
+    runs-on: ubuntu-latest
+    needs: [resolve, validate]
+    if: ${{ needs.resolve.outputs.mode != 'dry-run' }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Regenerate formula
+        env:
+          GITIGNORE_IN_VERSION: ${{ needs.resolve.outputs.version }}
         run: ./generate.sh
 
       - name: Create update pull request

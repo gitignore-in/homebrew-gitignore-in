@@ -21,6 +21,9 @@ You can also pin the upstream release explicitly:
 $ ./generate.sh v0.2.0
 ```
 
+To rehearse the release preparation workflow without opening a PR, run
+`prepare formula update` with `mode=dry-run`.
+
 ## License
 
 [BSD 2-clause "Simplified" License](https://spdx.org/licenses/BSD-2-Clause)
