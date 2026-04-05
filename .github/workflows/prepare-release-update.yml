@@ -60,7 +60,9 @@ jobs:
 
       - name: Validate formula installation
         run: |
-          brew install --formula ./gitignore-in.rb
+          tap_dir="$(brew --repository)"/Library/Taps/gitignore-in/homebrew-gitignore-in
+          cp ./gitignore-in.rb "${tap_dir}/gitignore-in.rb"
+          brew reinstall gitignore-in || brew install gitignore-in
           gitignore.in --help >/dev/null
 
         env:
